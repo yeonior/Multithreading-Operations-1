@@ -7,13 +7,27 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-
+final class ViewController: UIViewController {
+    
+    
+    @IBOutlet weak var label: UILabel!
+    @IBOutlet weak var imageVIew: UIImageView!
+    @IBOutlet weak var downloadButton: UIButton!
+    @IBOutlet weak var cancelButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        downloadButton.layer.cornerRadius = 15
+        cancelButton.layer.cornerRadius = 15
     }
-
-
+    
+    @IBAction func downloadButtonAction(_ sender: UIButton) {
+        
+    }
+    
+    @IBAction func cancelButtonAction(_ sender: UIButton) {
+        
+    }
 }
 
