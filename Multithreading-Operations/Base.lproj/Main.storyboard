@@ -73,7 +73,7 @@
                     <connections>
                         <outlet property="cancelButton" destination="Mgf-Qa-eVK" id="dbt-8z-5qS"/>
                         <outlet property="downloadButton" destination="uem-uW-66b" id="Y1e-TZ-o6r"/>
-                        <outlet property="imageVIew" destination="zIj-d0-7Zn" id="lj4-mE-QH2"/>
+                        <outlet property="imageView" destination="zIj-d0-7Zn" id="lj4-mE-QH2"/>
                         <outlet property="label" destination="y8Y-GE-JU9" id="dXK-j7-1As"/>
                     </connections>
                 </viewController>
