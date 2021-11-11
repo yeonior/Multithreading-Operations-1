@@ -18,6 +18,7 @@ final class ViewController: UIViewController {
     
     private let mainQueue = OperationQueue.main
     private let concurrentQueue = OperationQueue()
+    private var blockOperation = BlockOperation()
         
     private var timer = Timer()
     private var timerCount = 3 {
@@ -47,14 +48,17 @@ final class ViewController: UIViewController {
     }
     
     // async downloading an image and setting it up in the main thread
-    private func downloadImage(from URL: URL) {
+    private func downloadImage(from URL: URL, completionBlock: (() -> Void)? = nil) {
         var image = UIImage()
         let getImageOperation = BlockOperation {
             image = self.getImage(from: URL)
         }
         let setImageOperation = BlockOperation {
             self.imageView.image = image
+            guard let completion = completionBlock else { return }
+            completion()
         }
+        blockOperation = getImageOperation
         setImageOperation.addDependency(getImageOperation)
         concurrentQueue.addOperation(getImageOperation)
         mainQueue.addOperation(setImageOperation)
@@ -69,13 +73,13 @@ final class ViewController: UIViewController {
     }
         
     // setting up the timer
-    private func setUpTimer() {
-        label.isHidden = false
+    private func setUpTimer(completionBlock: (() -> Void)? = nil) {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [unowned self] timer in
-            print(timerCount)
             timerCount -= 1
             guard timerCount == 0 else { return }
             resetTimer()
+            guard let completion = completionBlock else { return }
+            completion()
         })
     }
     
@@ -89,7 +93,12 @@ final class ViewController: UIViewController {
     
     @IBAction func downloadButtonAction(_ sender: UIButton) {
         imageView.image = nil
-        downloadImage(from: imageURLs[0])
+        downloadImage(from: imageURLs[0]) {
+            self.label.isHidden = false
+            self.setUpTimer {
+                self.downloadImage(from: self.imageURLs[1])
+            }
+        }
     }
     
     @IBAction func cancelButtonAction(_ sender: UIButton) {
