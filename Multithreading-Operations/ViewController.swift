@@ -18,7 +18,8 @@ final class ViewController: UIViewController {
     
     private let mainQueue = OperationQueue.main
     private let concurrentQueue = OperationQueue()
-    private var blockOperation = BlockOperation()
+    private var firstOperation = BlockOperation()
+    private var secondOperation = BlockOperation()
         
     private var timer = Timer()
     private var timerCount = 3 {
@@ -31,6 +32,7 @@ final class ViewController: UIViewController {
         URL(string: "https://images.unsplash.com/photo-1635813782590-0f5d34934b9d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1287&q=80")!,
         URL(string: "https://images.unsplash.com/photo-1635372886281-4487e1e00904?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2274&q=80")!
     ]
+    private var image = UIImage()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,21 +49,21 @@ final class ViewController: UIViewController {
         cancelButton.layer.cornerRadius = 15
     }
     
-    // async downloading an image and setting it up in the main thread
-    private func downloadImage(from URL: URL, completionBlock: (() -> Void)? = nil) {
-        var image = UIImage()
-        let getImageOperation = BlockOperation {
-            image = self.getImage(from: URL)
-        }
-        let setImageOperation = BlockOperation {
-            self.imageView.image = image
-            guard let completion = completionBlock else { return }
-            completion()
-        }
-        blockOperation = getImageOperation
-        setImageOperation.addDependency(getImageOperation)
-        concurrentQueue.addOperation(getImageOperation)
-        mainQueue.addOperation(setImageOperation)
+    // setting up the operations
+    private func setUpOperations(first: @escaping () -> Void,
+                                 second: @escaping () -> Void) {
+        
+        firstOperation = BlockOperation(block: first)
+        secondOperation = BlockOperation(block: second)
+        performOperations(withAsyncBlock: firstOperation, andCompletionBlock: secondOperation)
+    }
+    
+    private func performOperations(withAsyncBlock asyncBlock: BlockOperation,
+                                   andCompletionBlock completionBlock: BlockOperation) {
+        
+        completionBlock.addDependency(asyncBlock)
+        concurrentQueue.addOperation(asyncBlock)
+        mainQueue.addOperation(completionBlock)
     }
     
     // trying to get an image
@@ -88,21 +90,28 @@ final class ViewController: UIViewController {
         timer.invalidate()
         timerCount = 3
         label.isHidden = true
-        cancelButton.isEnabled = false
     }
     
     @IBAction func downloadButtonAction(_ sender: UIButton) {
         imageView.image = nil
-        downloadImage(from: imageURLs[0]) {
+        
+        setUpOperations {
+            self.image = self.getImage(from: self.imageURLs[0])
+        } second: {
+            self.imageView.image = self.image
             self.label.isHidden = false
             self.setUpTimer {
-                self.downloadImage(from: self.imageURLs[1])
+                self.setUpOperations {
+                    self.image = self.getImage(from: self.imageURLs[1])
+                } second: {
+                    self.imageView.image = self.image
+                }
             }
         }
     }
     
     @IBAction func cancelButtonAction(_ sender: UIButton) {
-        
+        resetTimer()
     }
 }
 
