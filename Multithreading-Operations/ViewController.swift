@@ -76,10 +76,11 @@ final class ViewController: UIViewController {
         
     // setting up the timer
     private func setUpTimer(completionBlock: (() -> Void)? = nil) {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [unowned self] timer in
-            timerCount -= 1
-            guard timerCount == 0 else { return }
-            resetTimer()
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { [weak self] _ in
+            guard let self = self else { return }
+            self.timerCount -= 1
+            guard self.timerCount == 0 else { return }
+            self.resetTimer()
             guard let completion = completionBlock else { return }
             completion()
         })
@@ -95,9 +96,11 @@ final class ViewController: UIViewController {
     @IBAction func downloadButtonAction(_ sender: UIButton) {
         imageView.image = nil
         
-        setUpOperations {
+        setUpOperations { [weak self] in
+            guard let self = self else { return }
             self.image = self.getImage(from: self.imageURLs[0])
-        } second: {
+        } second: { [weak self] in
+            guard let self = self else { return }
             self.imageView.image = self.image
             self.label.isHidden = false
             self.setUpTimer {
