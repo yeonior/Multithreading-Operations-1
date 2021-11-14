@@ -95,6 +95,8 @@ final class ViewController: UIViewController {
     
     @IBAction func downloadButtonAction(_ sender: UIButton) {
         imageView.image = nil
+        downloadButton.isEnabled = false
+        downloadButton.setTitleColor(.label.withAlphaComponent(0.2), for: .normal)
         
         setUpOperations { [weak self] in
             guard let self = self else { return }
@@ -108,6 +110,8 @@ final class ViewController: UIViewController {
                     self.image = self.getImage(from: self.imageURLs[1])
                 } second: {
                     self.imageView.image = self.image
+                    self.downloadButton.isEnabled = true
+                    self.downloadButton.setTitleColor(.label.withAlphaComponent(1.0), for: .normal)
                 }
             }
         }
@@ -115,6 +119,7 @@ final class ViewController: UIViewController {
     
     @IBAction func cancelButtonAction(_ sender: UIButton) {
         resetTimer()
+        downloadButton.isEnabled = true
+        downloadButton.setTitleColor(.label.withAlphaComponent(1.0), for: .normal)
     }
 }
-
